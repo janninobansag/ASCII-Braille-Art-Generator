@@ -153,7 +153,3 @@ Images and text are processed in memory in your browser. They are not sent to a 
 ## License
 
 Not yet chosen. Add a `LICENSE` file before publishing. Third-party components (libheif, FIGlet fonts, UI fonts) have their own licenses; list them in `THIRD_PARTY_NOTICES.md`.
-
-## Acknowledgements
-
-The feature set was informed by public ASCII generators such as [asciigenerators.com](https://asciigenerators.com/). This is an independent implementation and does not reuse their code, copy, or assets. HEIC decoding uses [libheif](https://github.com/strukturag/libheif) through `libheif-js`.
