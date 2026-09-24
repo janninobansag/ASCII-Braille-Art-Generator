@@ -37,8 +37,8 @@ export function ControlsPanel({ state, onFileSelected, onUrlLoad }: ControlsPane
   } = state;
 
   const hasContent = inputMode === 'image' ? hasImage : text.text.trim().length > 0;
-      // For image mode, content is available when we have output art
-      const hasOutput = inputMode === 'image' && state.outputArt.length > 0;
+  // For image mode, content is available when we have output art
+  const hasOutput = inputMode === 'image' && (state.outputArt?.length ?? 0) > 0;
 
   return (
     <div className={styles.panel} id="controls-panel">

@@ -131,5 +131,13 @@ export function useAppState(): AppState {
     setControlsOpen,
     theme,
     toggleTheme,
+    outputArt,
+    setOutputArt,
+    outputCols,
+    setOutputCols,
+    outputRows,
+    setOutputRows,
+    isProcessing,
+    setIsProcessing,
   };
 }
