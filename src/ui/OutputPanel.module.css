@@ -39,6 +39,10 @@
   color: var(--text);
   cursor: pointer;
 }
+.zoomButton:hover {
+  border-color: var(--text-faint);
+  background: var(--bg-raised);
+}
 
 .size {
   font-family: var(--font-mono);
@@ -95,4 +99,8 @@
   color: var(--text);
   padding: var(--space-2) var(--space-4);
   cursor: pointer;
+}
+.chooseButton:hover {
+  border-color: var(--text-faint);
+  background: var(--bg-raised);
 }
