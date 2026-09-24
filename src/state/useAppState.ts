@@ -42,6 +42,16 @@ export interface AppState {
 
   theme: 'dark' | 'light';
   toggleTheme: () => void;
+
+  // Output state
+  outputArt: string;
+  setOutputArt: (art: string) => void;
+  outputCols: number;
+  setOutputCols: (cols: number) => void;
+  outputRows: number;
+  setOutputRows: (rows: number) => void;
+  isProcessing: boolean;
+  setIsProcessing: (processing: boolean) => void;
 }
 
 export function useAppState(): AppState {
@@ -56,6 +66,10 @@ export function useAppState(): AppState {
   const [zoom, setZoom] = useState(100);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [outputArt, setOutputArt] = useState('');
+  const [outputCols, setOutputCols] = useState(0);
+  const [outputRows, setOutputRows] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Selecting Braille output in Text mode implies the raster engine (see docs/text-mode.md).
   function setOutputMode(m: OutputMode) {
@@ -82,6 +96,11 @@ export function useAppState(): AppState {
     setCommonState(DEFAULT_COMMON);
     setAsciiState(DEFAULT_ASCII);
     setBrailleState(DEFAULT_BRAILLE);
+    setTextState(DEFAULT_TEXT);
+    setOutputArt('');
+    setOutputCols(0);
+    setOutputRows(0);
+    setIsProcessing(false);
   }
 
   function toggleTheme() {
