@@ -1,0 +1,41 @@
+.group {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  width: 100%;
+}
+
+.option {
+  flex: 1;
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: var(--space-2) var(--space-2);
+  cursor: pointer;
+  border-right: 1px solid var(--border-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.icon {
+  display: inline-flex;
+  opacity: 0.85;
+}
+
+.option:last-child {
+  border-right: none;
+}
+
+.option:hover {
+  color: var(--text);
+}
+
+.optionActive {
+  composes: option;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}

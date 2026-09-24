@@ -1,0 +1,59 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+}
+
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--panel-width) 1fr;
+  min-height: 0;
+}
+
+.controlsPane {
+  border-right: 1px solid var(--border);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.outputPane {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileControlsButton {
+  display: none;
+}
+
+/* Below ~900px: single column, output first, controls become a bottom sheet. */
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .controlsPane {
+    position: fixed;
+    inset: auto 0 0 0;
+    top: var(--header-height);
+    border-right: none;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    transform: translateY(100%);
+    transition: transform 200ms ease;
+    z-index: 20;
+  }
+
+  .controlsPaneOpen {
+    composes: controlsPane;
+    transform: translateY(0);
+  }
+
+  .mobileControlsButton {
+    display: block;
+  }
+}
