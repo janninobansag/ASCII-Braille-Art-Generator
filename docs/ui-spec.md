@@ -31,9 +31,11 @@ Layout, controls, states, and accessibility for the app. The structure follows t
 └──────────────────────┴─────────────────────────────────────────────┘
 ```
 
-- Left pane: fixed width, own scroll area. Header stays visible while controls scroll.
-- Right pane: fills the remaining width. Output scrolls in both directions when larger than the pane.
+- Layout is centered horizontally with a maximum width of 1040px on wide screens
+- Left pane: fixed width (360px), own scroll area. Header stays visible while controls scroll.
+- Right pane: fills the remaining width within the constrained layout. Output scrolls in both directions when larger than the pane.
 - Section labels use small uppercase monospace text. Numeric values appear in a small badge next to each slider label.
+- Content area has horizontal padding matching the navigation bar's content inset for visual alignment.
 
 ## Top-level switches
 
@@ -106,6 +108,7 @@ Header:
 - Label **OUTPUT**.
 - Zoom: **−**, current percentage (default 100%), **+**. Range 50–400%.
 - Size readout in characters, for example `35×5 chars` (columns × rows).
+- Zoom buttons and Choose image button show hover effects for improved interactivity.
 
 Body:
 
