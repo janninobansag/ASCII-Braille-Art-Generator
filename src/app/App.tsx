@@ -173,6 +173,7 @@ export function App() {
         onToggleTheme={state.toggleTheme}
         controlsOpen={state.controlsOpen}
         onToggleControls={() => state.setControlsOpen(!state.controlsOpen)}
+        onShowControls={() => state.setControlsOpen(true)}
         onShowOutput={() => state.setControlsOpen(false)}
       />
 

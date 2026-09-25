@@ -65,4 +65,16 @@
   .option:nth-child(2n) {
     border-right: none;
   }
+
+  .threeOptionGroup {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .threeOptionGroup .option:nth-child(2n) {
+    border-right: 1px solid var(--border-strong);
+  }
+
+  .threeOptionGroup .option:nth-child(3n) {
+    border-right: none;
+  }
 }
