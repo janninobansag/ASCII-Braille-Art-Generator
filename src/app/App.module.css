@@ -57,6 +57,12 @@
     overflow: visible;
   }
 
+  /* Controls and Output are separate mobile views; avoid showing an empty
+     output placeholder underneath the controls screen. */
+  .controlsPaneOpen ~ .outputPane {
+    display: none;
+  }
+
   .controlsPane {
     order: 1;
     position: static;

@@ -104,7 +104,18 @@ export function useAppState(): AppState {
   }
 
   function toggleTheme() {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    const updateTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    const startViewTransition = (
+      document as Document & {
+        startViewTransition?: (callback: () => void) => unknown;
+      }
+    ).startViewTransition;
+
+    if (startViewTransition) {
+      startViewTransition.call(document, updateTheme);
+    } else {
+      updateTheme();
+    }
   }
 
   return {
