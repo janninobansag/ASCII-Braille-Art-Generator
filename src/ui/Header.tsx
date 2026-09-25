@@ -13,12 +13,7 @@ export function Header({ theme, onToggleTheme, controlsOpen, onToggleControls }:
     <div className={`${styles.wrap} fade-in-up`}>
       <nav className={styles.nav} aria-label="Primary">
         <a className={styles.brand} href="/">
-          <span className={styles.mark} aria-hidden="true">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M4 8 7 12l-3 4" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M13 6 10 18" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
+          <img className={styles.mark} src="/ascii-braille-logo-v2.png" alt="" aria-hidden="true" />
           ASCII &amp; Braille
         </a>
 
