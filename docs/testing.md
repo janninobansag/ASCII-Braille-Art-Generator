@@ -1,6 +1,6 @@
 # Testing
 
-How the project is tested and what "done" means for a change.
+How the project is tested and what "done" means for a change..
 
 ## Contents
 
