@@ -6,6 +6,7 @@
 
 .option {
   flex: 1;
+  min-width: 0;
   appearance: none;
   border: none;
   background: transparent;
@@ -19,6 +20,8 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  transition: background-color 140ms ease, color 140ms ease;
+  overflow-wrap: anywhere;
 }
 
 .icon {
@@ -31,6 +34,7 @@
 }
 
 .option:hover {
+  background: var(--bg-raised);
   color: var(--text);
 }
 
@@ -38,4 +42,27 @@
   composes: option;
   background: var(--accent);
   color: var(--accent-contrast);
+}
+
+.optionActive:hover {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+@media (max-width: 600px) {
+  .group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .option {
+    width: 100%;
+    min-height: 38px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .option:nth-child(2n) {
+    border-right: none;
+  }
 }

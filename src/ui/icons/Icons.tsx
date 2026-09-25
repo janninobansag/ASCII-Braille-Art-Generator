@@ -99,6 +99,16 @@ export function SlidersIcon({ size = 18, ...rest }: IconProps) {
   );
 }
 
+export function MenuIcon({ size = 18, ...rest }: IconProps) {
+  return (
+    <svg {...base(size)} {...rest}>
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  );
+}
+
 export function GithubIcon({ size = 18, ...rest }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...rest}>

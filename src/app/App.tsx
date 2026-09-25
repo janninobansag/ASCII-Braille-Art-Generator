@@ -173,6 +173,7 @@ export function App() {
         onToggleTheme={state.toggleTheme}
         controlsOpen={state.controlsOpen}
         onToggleControls={() => state.setControlsOpen(!state.controlsOpen)}
+        onShowOutput={() => state.setControlsOpen(false)}
       />
 
       <div className={styles.body}>
@@ -187,7 +188,7 @@ export function App() {
           />
         </div>
 
-        <div className={`${styles.outputPane} fade-in-up`} style={{ animationDelay: '120ms' }}>
+        <div id="output-panel" className={`${styles.outputPane} fade-in-up`} style={{ animationDelay: '120ms' }}>
           <OutputPanel
             hasContent={state.hasImage && state.outputArt.length > 0}
             art={state.outputArt}
