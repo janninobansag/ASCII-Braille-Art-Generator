@@ -95,7 +95,7 @@ export async function loadHeicFile(file: File): Promise<ImageData> {
   try {
     return await loadImageFile(file);
   } catch (error) {
-    // In a full implementation, we'd fall back to a WASM decoder here
-    throw new Error(`HEIC format not supported: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`HEIC format not supported: ${message}`);
   }
 }

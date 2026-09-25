@@ -8,14 +8,15 @@ import { quantize } from '../utils';
  * ASCII ramp presets from lightest to darkest
  */
 export const ASCII_RAMPS = {
-  // Standard character ramp
+  // Preset ramps
+  classic: ' .:-=+*#%@',
+  extended: ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
+  blocks: ' ░▒▓█',
+
+  // Backward-compatibility aliases
   standard: ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
-
-  // Simple ramp
   simple: ' .:-=+*#%@',
-
-  // Dense ramp
-  dense: ' .'`^",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
+  dense: ' .\'`^",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
 };
 
 /**

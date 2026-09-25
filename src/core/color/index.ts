@@ -16,7 +16,7 @@ import { srgbToLinear, computeLuminance, adjustTone } from '../utils';
  * @returns linear luminance as Float32Array (length = width * height)
  */
 export function rgbaToLuminance(
-  rgba: Uint8Array,
+  rgba: Uint8Array | Uint8ClampedArray,
   width: number,
   height: number,
   bgR: number = 0,

@@ -14,7 +14,7 @@
  * @returns destination RGBA pixels as Uint8Array (length = dstW * dstH * 4)
  */
 export function areaAverageResize(
-  src: Uint8Array,
+  src: Uint8Array | Uint8ClampedArray,
   srcW: number,
   srcH: number,
   dstW: number,
@@ -40,7 +40,7 @@ export function areaAverageResize(
 
       // Avoid division by zero
       const width = Math.max(1, x1 - x0);
-      const area = Math.max(1, y1 - y0) * Math.max(1, x1 - x0);
+      const area = Math.max(1, y1 - y0) * width;
 
       // Initialize accumulators
       let rSum = 0;

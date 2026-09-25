@@ -1,24 +1,78 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { ControlsPanel } from '../ui/ControlsPanel';
 import { Header } from '../ui/Header';
 import { OutputPanel } from '../ui/OutputPanel';
 import { StatusRegion } from '../ui/StatusRegion';
 import { useAppState } from '../state/useAppState';
 import { loadImageFile, loadImageUrl, getImageData } from '../io/decode';
+import { ASCII_RAMPS } from '../core/ascii';
 import styles from './App.module.css';
+
+interface CachedImage {
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
+}
 
 export function App() {
   const state = useAppState();
+  const workerRef = useRef<Worker | null>(null);
+  const currentImageRef = useRef<CachedImage | null>(null);
 
   // Reflect the theme on <html> so CSS custom properties in theme.css apply globally.
   useEffect(() => {
     document.documentElement.dataset.theme = state.theme;
   }, [state.theme]);
 
+  // Helper to post a process job to the worker
+  const dispatchProcess = useCallback(
+    (img: CachedImage) => {
+      const worker = workerRef.current;
+      if (!worker) return;
+
+      const ramp =
+        state.ascii.ramp === 'custom'
+          ? state.ascii.customRamp || ASCII_RAMPS.classic
+          : ASCII_RAMPS[state.ascii.ramp] || ASCII_RAMPS.classic;
+
+      state.setIsProcessing(true);
+      worker.postMessage({
+        type: 'process',
+        payload: {
+          imageData: img.data,
+          width: img.width,
+          height: img.height,
+          outputWidth: state.common.columns,
+          outputMode: state.outputMode,
+          brightness: state.common.brightness / 100,
+          contrast: state.common.contrast,
+          gamma: state.common.gamma,
+          stretchX: state.common.stretchX,
+          stretchY: state.common.stretchY,
+          invert: state.common.invert,
+          characterRamp: ramp,
+          dithering: state.common.dithering.algorithm,
+          ditherStrength: state.common.dithering.strength,
+          serpentine: state.common.dithering.serpentine,
+          edgeDetect: state.ascii.edgeEnabled,
+          edgeThreshold: state.ascii.edgeThreshold,
+          fillBlankCells: state.braille.fillBlank,
+          thresholdAuto: state.braille.thresholdAuto,
+          threshold: state.braille.threshold,
+          backgroundColor:
+            state.theme === 'dark' ? { r: 14, g: 16, b: 21 } : { r: 255, g: 255, b: 255 },
+        },
+      });
+    },
+    [state]
+  );
+
   // Initialize the pipeline worker
   useEffect(() => {
     try {
-      const worker = new Worker(new URL('./workers/pipeline.worker.ts', import.meta.url));
+      const worker = new Worker(new URL('../workers/pipeline.worker.ts', import.meta.url), {
+        type: 'module',
+      });
 
       worker.onmessage = (e: MessageEvent) => {
         const { type, payload } = e.data;
@@ -31,7 +85,6 @@ export function App() {
           state.setIsProcessing(false);
         } else if (type === 'error') {
           state.setIsProcessing(false);
-          // In a real app, we'd have a proper error state - for now just log
           console.error('Worker error:', payload.message);
         }
       };
@@ -41,74 +94,51 @@ export function App() {
         console.error('Worker error:', e.message);
       };
 
+      workerRef.current = worker;
+
+      // If we already have a cached image when worker mounts, process it
+      if (currentImageRef.current) {
+        dispatchProcess(currentImageRef.current);
+      }
+
       return () => {
         worker.terminate();
+        workerRef.current = null;
       };
     } catch (error) {
       console.warn('Could not create worker:', error);
-      // Fallback to main thread processing if worker fails
     }
-  }, []); // Empty deps - worker should be created once
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-process when rendering settings change and an image is loaded
+  useEffect(() => {
+    if (currentImageRef.current && state.inputMode === 'image') {
+      dispatchProcess(currentImageRef.current);
+    }
+  }, [
+    state.common,
+    state.ascii,
+    state.braille,
+    state.outputMode,
+    state.inputMode,
+    state.theme,
+    dispatchProcess,
+  ]);
 
   async function handleFileSelected(file: File) {
     state.setIsProcessing(true);
     state.setOutputArt(''); // Clear previous output
 
     try {
-      // Load and decode the image
       const imageData = await loadImageFile(file);
       const { data, width, height } = getImageData(imageData);
+      const cached = { data, width, height };
+      currentImageRef.current = cached;
 
       state.setImageName(file.name);
       state.setHasImage(true);
 
-      // Process the image if worker is available
-      const worker = new Worker(new URL('./workers/pipeline.worker.ts', import.meta.url));
-      worker.onmessage = (e: MessageEvent) => {
-        const { type, payload } = e.data;
-
-        if (type === 'result') {
-          const { art, cols, rows } = payload;
-          state.setOutputArt(art);
-          state.setOutputCols(cols);
-          state.setOutputRows(rows);
-          state.setIsProcessing(false);
-        } else if (type === 'error') {
-          state.setIsProcessing(false);
-          console.error('Worker error:', payload.message);
-        }
-
-        worker.terminate(); // Clean up worker after use
-      };
-
-      worker.onerror = (e: ErrorEvent) => {
-        state.setIsProcessing(false);
-        console.error('Worker error:', e.message);
-        worker.terminate();
-      };
-
-      worker.postMessage({
-        type: 'process',
-        payload: {
-          imageData: data,
-          width,
-          height,
-          outputWidth: state.common.columns,
-          outputMode: state.outputMode,
-          brightness: state.common.brightness,
-          contrast: state.common.contrast,
-          gamma: state.common.gamma,
-          invert: state.common.invertBrightness,
-          characterRamp: state.common.characterRamp || '',
-          dithering: state.common.dithering,
-          ditherStrength: state.common.ditherStrength,
-          serpentine: state.common.serpentineScan,
-          edgeDetect: state.common.edgeDetect,
-          edgeThreshold: state.common.edgeDetectThreshold,
-          fillBlankCells: state.common.fillBlankCells,
-          backgroundColor: state.common.backgroundColor
-        }
-      });
+      dispatchProcess(cached);
     } catch (error) {
       state.setIsProcessing(false);
       console.error('Error loading image:', error);
@@ -120,57 +150,16 @@ export function App() {
     state.setOutputArt(''); // Clear previous output
 
     try {
-      // Load and decode the image from URL
       const imageData = await loadImageUrl(url);
       const { data, width, height } = getImageData(imageData);
+      const cached = { data, width, height };
+      currentImageRef.current = cached;
 
-      // Process the image if worker is available
-      const worker = new Worker(new URL('./workers/pipeline.worker.ts', import.meta.url));
-      worker.onmessage = (e: MessageEvent) => {
-        const { type, payload } = e.data;
+      const urlName = url.split('/').pop()?.split('?')[0] || 'remote-image';
+      state.setImageName(urlName);
+      state.setHasImage(true);
 
-        if (type === 'result') {
-          const { art, cols, rows } = payload;
-          state.setOutputArt(art);
-          state.setOutputCols(cols);
-          state.setOutputRows(rows);
-          state.setIsProcessing(false);
-        } else if (type === 'error') {
-          state.setIsProcessing(false);
-          console.error('Worker error:', payload.message);
-        }
-
-        worker.terminate(); // Clean up worker after use
-      };
-
-      worker.onerror = (e: ErrorEvent) => {
-        state.setIsProcessing(false);
-        console.error('Worker error:', e.message);
-        worker.terminate();
-      };
-
-      worker.postMessage({
-        type: 'process',
-        payload: {
-          imageData: data,
-          width,
-          height,
-          outputWidth: state.common.columns,
-          outputMode: state.outputMode,
-          brightness: state.common.brightness,
-          contrast: state.common.contrast,
-          gamma: state.common.gamma,
-          invert: state.common.invertBrightness,
-          characterRamp: state.common.characterRamp || '',
-          dithering: state.common.dithering,
-          ditherStrength: state.common.ditherStrength,
-          serpentine: state.common.serpentineScan,
-          edgeDetect: state.common.edgeDetect,
-          edgeThreshold: state.common.edgeDetectThreshold,
-          fillBlankCells: state.common.fillBlankCells,
-          backgroundColor: state.common.backgroundColor
-        }
-      });
+      dispatchProcess(cached);
     } catch (error) {
       state.setIsProcessing(false);
       console.error('Error loading image:', error);
@@ -210,6 +199,7 @@ export function App() {
           />
         </div>
       </div>
+      <StatusRegion message={state.isProcessing ? 'Processing image...' : ''} />
     </div>
   );
 }
