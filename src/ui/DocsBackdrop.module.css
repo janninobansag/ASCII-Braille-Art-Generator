@@ -1,0 +1,43 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 58% 88% at 50% 48%,
+    rgba(var(--bg-raised-rgb), 0.94) 0%,
+    rgba(var(--bg-raised-rgb), 0.84) 46%,
+    rgba(var(--bg-raised-rgb), 0.3) 78%,
+    rgba(var(--bg-raised-rgb), 0.12) 100%
+  );
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.14;
+  filter: grayscale(1) contrast(1.12);
+  mix-blend-mode: screen;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+:global(:root[data-theme='light']) .image {
+  opacity: 0.09;
+  filter: invert(1) grayscale(1) contrast(1.06);
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    will-change: auto;
+  }
+}
