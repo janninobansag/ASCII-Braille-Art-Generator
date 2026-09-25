@@ -42,7 +42,7 @@
 
   --nav-height: 64px;
   --nav-blur: 14px;
-  --panel-width: 360px;
+  --panel-width: 400px;
   --header-height: calc(var(--nav-height) + var(--space-3));
 
   color-scheme: dark;
