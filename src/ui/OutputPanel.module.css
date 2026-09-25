@@ -104,3 +104,24 @@
   border-color: var(--text-faint);
   background: var(--bg-raised);
 }
+
+@media (max-width: 900px) {
+  .panel {
+    height: auto;
+    min-height: 0;
+  }
+
+  .body {
+    min-height: 0;
+    overflow: visible;
+    display: block;
+  }
+
+  .art {
+    margin: 0;
+  }
+
+  .empty {
+    margin: var(--space-7) auto;
+  }
+}
