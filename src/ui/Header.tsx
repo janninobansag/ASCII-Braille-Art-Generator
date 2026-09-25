@@ -1,4 +1,4 @@
-import { ExternalLinkIcon, GithubIcon, MoonIcon, SlidersIcon, SunIcon } from './icons/Icons';
+import { ExternalLinkIcon, GithubIcon, ImageIcon, MenuIcon, MoonIcon, SlidersIcon, SunIcon } from './icons/Icons';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -6,15 +6,16 @@ interface HeaderProps {
   onToggleTheme: () => void;
   controlsOpen: boolean;
   onToggleControls: () => void;
+  onShowOutput: () => void;
 }
 
-export function Header({ theme, onToggleTheme, controlsOpen, onToggleControls }: HeaderProps) {
+export function Header({ theme, onToggleTheme, controlsOpen, onToggleControls, onShowOutput }: HeaderProps) {
   return (
     <div className={`${styles.wrap} fade-in-up`}>
       <nav className={styles.nav} aria-label="Primary">
-        <a className={styles.brand} href="/">
-          <img className={styles.mark} src="/ascii-braille-logo-v2.png" alt="" aria-hidden="true" />
-          ASCII &amp; Braille
+        <a className={styles.brand} href="/" aria-label="ASCII & Braille">
+          <img className={styles.mark} src="/ascii-braille-logo-v2.png" alt="ASCII & Braille" />
+          <span>ASCII &amp; Braille</span>
         </a>
 
         <div className={styles.links}>
@@ -33,13 +34,13 @@ export function Header({ theme, onToggleTheme, controlsOpen, onToggleControls }:
         <div className={styles.actions}>
           <button
             type="button"
-            className={styles.controlsToggle}
-            aria-expanded={controlsOpen}
-            aria-controls="controls-panel"
-            onClick={onToggleControls}
+            className={styles.outputToggle}
+            aria-label={controlsOpen ? 'Show output' : 'Show controls'}
+            aria-controls={controlsOpen ? 'output-panel' : 'controls-panel'}
+            onClick={controlsOpen ? onShowOutput : onToggleControls}
           >
-            <SlidersIcon size={15} />
-            <span className={styles.controlsToggleLabel}>Controls</span>
+            {controlsOpen ? <ImageIcon size={15} /> : <SlidersIcon size={15} />}
+            <span className={styles.controlsToggleLabel}>{controlsOpen ? 'Output' : 'Controls'}</span>
           </button>
           <a
             className={styles.iconButton}
@@ -57,6 +58,16 @@ export function Header({ theme, onToggleTheme, controlsOpen, onToggleControls }:
             onClick={onToggleTheme}
           >
             {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
+          </button>
+          <button
+            type="button"
+            className={styles.iconButton}
+            aria-label={controlsOpen ? 'Close controls' : 'Open controls'}
+            aria-expanded={controlsOpen}
+            aria-controls="controls-panel"
+            onClick={onToggleControls}
+          >
+            <MenuIcon size={16} />
           </button>
         </div>
       </nav>

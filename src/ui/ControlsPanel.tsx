@@ -84,6 +84,18 @@ export function ControlsPanel({ state, onFileSelected, onUrlLoad }: ControlsPane
               braille={braille}
               setBraille={setBraille}
             />
+
+            <ExportPanel
+              outputMode={outputMode}
+              hasContent={hasContent}
+              charCount={0}
+              onCopyArt={() => {}}
+              onDiscord={() => {}}
+              onFullWidth={() => {}}
+              onCopyImage={() => {}}
+              onDownloadPng={() => {}}
+              onDownloadTxt={() => {}}
+            />
           </>
         ) : (
           <>
@@ -97,21 +109,21 @@ export function ControlsPanel({ state, onFileSelected, onUrlLoad }: ControlsPane
               braille={braille}
               setBraille={setBraille}
             />
+
+            <ExportPanel
+              outputMode={outputMode}
+              hasContent={hasContent}
+              charCount={0}
+              onCopyArt={() => {}}
+              onDiscord={() => {}}
+              onFullWidth={() => {}}
+              onCopyImage={() => {}}
+              onDownloadPng={() => {}}
+              onDownloadTxt={() => {}}
+            />
           </>
         )}
       </div>
-
-      <ExportPanel
-        outputMode={outputMode}
-        hasContent={hasContent}
-        charCount={0}
-        onCopyArt={() => {}}
-        onDiscord={() => {}}
-        onFullWidth={() => {}}
-        onCopyImage={() => {}}
-        onDownloadPng={() => {}}
-        onDownloadTxt={() => {}}
-      />
     </div>
   );
 }
