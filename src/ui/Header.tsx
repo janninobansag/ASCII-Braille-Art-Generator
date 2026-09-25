@@ -1,5 +1,6 @@
 import { ExternalLinkIcon, GithubIcon, ImageIcon, MenuIcon, MoonIcon, SlidersIcon, SunIcon } from './icons/Icons';
 import styles from './Header.module.css';
+import { scrollToSection, scrollToTop } from '../app/navigation';
 
 interface HeaderProps {
   theme: 'dark' | 'light';
@@ -28,6 +29,10 @@ export function Header({
           onClick={event => {
             event.preventDefault();
             onShowControls();
+
+            if (window.matchMedia('(min-width: 901px)').matches) {
+              scrollToTop();
+            }
           }}
         >
           <img className={styles.mark} src="/ascii-braille-logo-v2.png" alt="ASCII & Braille" />
@@ -35,10 +40,10 @@ export function Header({
         </a>
 
         <div className={styles.links}>
-          <a className={styles.link} href="#features">
+          <a className={styles.link} href="#features" onClick={event => scrollToSection(event, 'features')}>
             Features
           </a>
-          <a className={styles.link} href="#docs">
+          <a className={styles.link} href="#docs" onClick={event => scrollToSection(event, 'docs')}>
             Docs
           </a>
           <a className={styles.link} href="https://github.com" target="_blank" rel="noreferrer">

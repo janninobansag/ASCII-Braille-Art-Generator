@@ -17,7 +17,13 @@ interface SegmentedProps<T extends string> {
 export function Segmented<T extends string>({ value, options, onChange, ariaLabel }: SegmentedProps<T>) {
   return (
     <div
-      className={`${styles.group} ${options.length === 3 ? styles.threeOptionGroup : ''}`}
+      className={`${styles.group} ${
+        options.length === 3
+          ? styles.threeOptionGroup
+          : options.length >= 4
+            ? styles.compactGroup
+            : ''
+      }`}
       role="radiogroup"
       aria-label={ariaLabel}
     >

@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { ControlsPanel } from '../ui/ControlsPanel';
 import { Header } from '../ui/Header';
+import { Footer } from '../ui/Footer';
+import { HeroBackdrop } from '../ui/HeroBackdrop';
+import { DocsBackdrop } from '../ui/DocsBackdrop';
 import { OutputPanel } from '../ui/OutputPanel';
 import { StatusRegion } from '../ui/StatusRegion';
 import { useAppState } from '../state/useAppState';
 import { loadImageFile, loadImageUrl, getImageData } from '../io/decode';
 import { ASCII_RAMPS } from '../core/ascii';
 import styles from './App.module.css';
+import { scrollToSection } from './navigation';
 
 interface CachedImage {
   data: Uint8ClampedArray;
@@ -177,7 +181,34 @@ export function App() {
         onShowOutput={() => state.setControlsOpen(false)}
       />
 
-      <div className={styles.body}>
+      <section className={styles.hero} aria-labelledby="hero-title">
+        <HeroBackdrop />
+        <div className={styles.heroContent}>
+          <div className={styles.heroBadges} aria-label="Highlights">
+            <span className={styles.heroBadge}><strong>NEW</strong> Braille-ready rendering</span>
+            <span className={styles.heroBadge}>✓ Client-side processing</span>
+          </div>
+          <h1 id="hero-title" className={styles.heroTitle}>
+            Images and text,
+            <br />
+            into ASCII art.
+          </h1>
+          <p className={styles.heroCopy}>
+            Convert an image or type text to pixel-perfect ASCII and Braille art—ready for code,
+            chat, and creative projects.
+          </p>
+          <div className={styles.heroActions}>
+            <button type="button" className={styles.heroPrimary} onClick={() => state.setControlsOpen(true)}>
+              Open generator
+            </button>
+            <a className={styles.heroSecondary} href="#features" onClick={event => scrollToSection(event, 'features')}>
+              See features
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className={styles.body} aria-label="Generator features">
         <div
           className={`${state.controlsOpen ? styles.controlsPaneOpen : styles.controlsPane} fade-in-up`}
           style={{ animationDelay: '60ms' }}
@@ -200,7 +231,37 @@ export function App() {
             onChooseImage={() => state.setControlsOpen(true)}
           />
         </div>
-      </div>
+      </section>
+
+      <section id="docs" className={styles.about} aria-labelledby="about-title">
+        <DocsBackdrop />
+        <div className={styles.aboutInner}>
+          <h2 id="about-title">What is ASCII &amp; Braille Art Generator?</h2>
+          <p>
+            ASCII &amp; Braille Art Generator is a free, browser-based tool that transforms images
+            and text into artwork made from characters. It turns pixels into expressive patterns
+            you can copy into code, chat, documentation, or creative projects.
+          </p>
+          <p>
+            Everything runs locally in your browser. Your images stay on your device, with no
+            account, upload, or server-side processing required.
+          </p>
+
+          <h3>Image to ASCII and Braille</h3>
+          <p>
+            Upload an image or paste a URL, then tune width, brightness, contrast, gamma, stretch,
+            dithering, and character ramps in real time. Switch between ASCII for familiar text
+            art and Braille for denser, higher-resolution output.
+          </p>
+
+          <h3>Made for sharing</h3>
+          <p>
+            Copy aligned text for Discord, Twitch, YouTube, and terminals, or export a PNG when
+            you want the artwork to keep its exact visual shape across platforms.
+          </p>
+        </div>
+      </section>
+      <Footer onOpenGenerator={() => state.setControlsOpen(true)} />
       <StatusRegion message={state.isProcessing ? 'Processing image...' : ''} />
     </div>
   );

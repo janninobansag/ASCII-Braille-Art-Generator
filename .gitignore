@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Tooling caches
+.vite/
+
 # Build output
 dist/
 dist-ssr/
@@ -38,3 +41,6 @@ blob-report/
 
 # Misc
 *.local
+AGENTS.md
+.agents/
+skills-lock.json
