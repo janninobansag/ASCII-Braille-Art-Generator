@@ -81,6 +81,35 @@
   box-sizing: border-box;
 }
 
+/* Palette changes should feel intentional rather than flashing between themes. */
+html,
+body,
+button,
+input,
+select,
+textarea,
+div,
+a {
+  transition:
+    background 420ms ease-in-out,
+    background-color 420ms ease-in-out,
+    color 420ms ease-in-out,
+    border-color 420ms ease-in-out,
+    box-shadow 420ms ease-in-out;
+}
+
+/* Keep component-level hover transitions from shortening theme changes. */
+html[data-theme] * {
+  transition-duration: 420ms;
+  transition-timing-function: ease-in-out;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 420ms;
+  animation-timing-function: ease-in-out;
+}
+
 html,
 body,
 #root {

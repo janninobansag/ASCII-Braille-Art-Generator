@@ -6,14 +6,30 @@ interface HeaderProps {
   onToggleTheme: () => void;
   controlsOpen: boolean;
   onToggleControls: () => void;
+  onShowControls: () => void;
   onShowOutput: () => void;
 }
 
-export function Header({ theme, onToggleTheme, controlsOpen, onToggleControls, onShowOutput }: HeaderProps) {
+export function Header({
+  theme,
+  onToggleTheme,
+  controlsOpen,
+  onToggleControls,
+  onShowControls,
+  onShowOutput,
+}: HeaderProps) {
   return (
     <div className={`${styles.wrap} fade-in-up`}>
       <nav className={styles.nav} aria-label="Primary">
-        <a className={styles.brand} href="/" aria-label="ASCII & Braille">
+        <a
+          className={styles.brand}
+          href="/"
+          aria-label="Open controls"
+          onClick={event => {
+            event.preventDefault();
+            onShowControls();
+          }}
+        >
           <img className={styles.mark} src="/ascii-braille-logo-v2.png" alt="ASCII & Braille" />
           <span>ASCII &amp; Braille</span>
         </a>
