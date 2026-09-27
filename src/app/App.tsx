@@ -9,6 +9,8 @@ import { StatusRegion } from '../ui/StatusRegion';
 import { useAppState } from '../state/useAppState';
 import { loadImageFile, loadImageUrl, getImageData } from '../io/decode';
 import { ASCII_RAMPS } from '../core/ascii';
+import { renderTextToBitmap } from '../core/text/textToBitmap';
+import { processBitmapToArt } from '../core/processBitmap';
 import styles from './App.module.css';
 import { scrollToSection } from './navigation';
 
@@ -71,6 +73,7 @@ export function App() {
     [state]
   );
 
+  
   // Initialize the pipeline worker
   useEffect(() => {
     try {
@@ -127,6 +130,75 @@ export function App() {
     state.inputMode,
     state.theme,
     dispatchProcess,
+  ]);
+
+  // Process text when text or settings change
+  useEffect(() => {
+    if (state.inputMode !== 'text') return;
+    if (!state.text?.text?.trim()) {
+      // If text is empty, clear output and return
+      state.setOutputArt('');
+      state.setOutputCols(0);
+      state.setOutputRows(0);
+      state.setIsProcessing(false);
+      return;
+    }
+
+    state.setIsProcessing(true);
+    state.setOutputArt(''); // Clear previous output
+
+    renderTextToBitmap({
+      text: state.text,
+      common: state.common,
+      ascii: state.ascii,
+      braille: state.braille,
+      outputMode: state.outputMode,
+    })
+      .then(bitmap => {
+        // Process the bitmap directly using the pure function (avoiding worker)
+        const ramp =
+          state.ascii.ramp === 'custom'
+            ? state.ascii.customRamp || ASCII_RAMPS.classic
+            : ASCII_RAMPS[state.ascii.ramp] || ASCII_RAMPS.classic;
+
+        const result = processBitmapToArt(
+          bitmap.data,
+          bitmap.width,
+          bitmap.height,
+          state.common.columns, // outputWidth
+          state.outputMode,
+          state.common.brightness / 100, // brightness in [-1, 1]
+          state.common.contrast,
+          state.common.gamma,
+          state.common.invert,
+          ramp,
+          state.common.dithering.algorithm,
+          state.common.dithering.strength,
+          state.common.dithering.serpentine,
+          state.ascii.edgeEnabled,
+          state.ascii.edgeThreshold,
+          state.braille.fillBlank,
+          state.braille.thresholdAuto,
+          state.braille.threshold,
+          state.theme === 'dark' ? { r: 14, g: 16, b: 21 } : { r: 255, g: 255, b: 255 }
+        );
+
+        state.setOutputArt(result.art);
+        state.setOutputCols(result.cols);
+        state.setOutputRows(result.rows);
+        state.setIsProcessing(false);
+      })
+      .catch(error => {
+        state.setIsProcessing(false);
+        console.error('Error rendering text:', error);
+      });
+  }, [
+    state.text,
+    state.common,
+    state.ascii,
+    state.braille,
+    state.outputMode,
+    state.inputMode,
   ]);
 
   async function handleFileSelected(file: File) {
@@ -222,7 +294,7 @@ export function App() {
 
         <div id="output-panel" className={`${styles.outputPane} fade-in-up`} style={{ animationDelay: '120ms' }}>
           <OutputPanel
-            hasContent={state.hasImage && state.outputArt.length > 0}
+            hasContent={state.outputArt?.length > 0}
             art={state.outputArt}
             cols={state.outputCols}
             rows={state.outputRows}
@@ -236,9 +308,9 @@ export function App() {
       <section id="docs" className={styles.about} aria-labelledby="about-title">
         <DocsBackdrop />
         <div className={styles.aboutInner}>
-          <h2 id="about-title">What is ASCII &amp; Braille Art Generator?</h2>
+          <h2 id="about-title">What is ASCII & Braille Art Generator?</h2>
           <p>
-            ASCII &amp; Braille Art Generator is a free, browser-based tool that transforms images
+            ASCII & Braille Art Generator is a free, browser-based tool that transforms images
             and text into artwork made from characters. It turns pixels into expressive patterns
             you can copy into code, chat, documentation, or creative projects.
           </p>
@@ -262,7 +334,7 @@ export function App() {
         </div>
       </section>
       <Footer onOpenGenerator={() => state.setControlsOpen(true)} />
-      <StatusRegion message={state.isProcessing ? 'Processing image...' : ''} />
+      <StatusRegion message={state.isProcessing ? (state.inputMode === 'text' ? 'Processing text...' : 'Processing image...') : ''} />
     </div>
   );
 }
