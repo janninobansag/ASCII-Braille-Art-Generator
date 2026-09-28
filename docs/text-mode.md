@@ -14,6 +14,8 @@ How typed text becomes ASCII or Braille art. There are two engines and two outpu
 
 ## Overview
 
+**Current status:** the Text controls and settings types are present, but the main app currently processes loaded images only. FIGlet/raster rendering, font assets, and text-to-Braille conversion in this document are the planned implementation contract.
+
 | Engine | ASCII output | Braille output | Best for |
 |---|---|---|---|
 | **FIGlet** | Yes | No | Classic banner letters, README headers |

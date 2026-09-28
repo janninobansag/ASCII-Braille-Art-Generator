@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Requirements: a current Node.js LTS release and npm. For browser tests, run `npx playwright install --with-deps` once.
+Requirements: Node.js 20 or newer and npm. Automated browser tests are planned but are not installed in this scaffold yet.
 
 Read [docs/architecture.md](docs/architecture.md) before making structural changes.
 
@@ -21,18 +21,17 @@ Read [docs/architecture.md](docs/architecture.md) before making structural chang
 2. Create a branch from `main`: `feature/<short-name>` or `fix/<short-name>`.
 3. Make focused commits. Use plain, imperative messages ("Add Atkinson kernel", "Fix Braille edge padding").
 4. Run the checks below.
-5. Open a pull request. Vercel builds a preview; include what changed, why, and how you tested it. For UI changes, add screenshots.
+5. Open a pull request. Include what changed, why, and how you tested it. For UI changes, add screenshots. Vercel preview builds apply only after the repository is connected to Vercel.
 
 ## Checks before opening a pull request
 
 ```bash
 npm run lint
 npm run typecheck
-npm test
 npm run build
 ```
 
-If your change touches browser APIs (canvas, clipboard, workers, HEIC), also run `npm run test:e2e`.
+There are currently no `npm test` or `npm run test:e2e` scripts. Add the corresponding dependencies and scripts before relying on automated unit or browser tests.
 
 ## Code guidelines
 
@@ -40,16 +39,16 @@ If your change touches browser APIs (canvas, clipboard, workers, HEIC), also run
 - **Keep `src/core/` pure.** No DOM access, no imports from `ui`, `state`, `io`, or `workers`. Functions take typed arrays and settings, and return data.
 - Output must be deterministic. No `Math.random()` in conversion code.
 - Do not block the main thread with heavy loops; put them in the worker.
-- Load large things lazily (HEIC decoder, FIGlet fonts).
+- Load large things lazily when those decoders or font bundles are added.
 - No third-party scripts, styles, or fonts loaded from other origins. Self-host instead.
 - Styling uses CSS Modules. Define colors as CSS custom properties.
 - Keep components small and controlled. State lives in `src/state/`.
 
 ## Tests
 
-- New logic in `src/core/` needs unit tests. For text output, add golden snapshots.
-- Bug fixes should include a test that fails without the fix.
-- See [docs/testing.md](docs/testing.md) for fixtures and the full list of checks.
+- New logic in `src/core/` should receive unit tests once the test harness is added. For text output, use golden snapshots.
+- Bug fixes should include a regression test when the relevant harness exists.
+- See [docs/testing.md](docs/testing.md) for the planned coverage and the checks that are currently available.
 
 ## Accessibility
 
@@ -63,11 +62,10 @@ Update the docs in the same pull request when you change behavior, settings, lim
 
 | To add | Do this |
 |---|---|
-| A dither kernel | Add it to `core/dither/kernels.ts`, register the id, add it to the UI select, add a golden test |
-| A ramp preset | Add it to `core/ascii/ramp.ts`, ordered lightest to darkest |
-| A FIGlet font | Add the `.flf` file, update `figlet-fonts.json`, add the license to `THIRD_PARTY_NOTICES.md` |
-| A UI font (raster text) | Open-license fonts only; add the license file beside the font |
-| An export format | Add a pure formatter in `core/export/`, then a button in `ExportPanel` |
+| A dither kernel | Add it to the appropriate module in `src/core/dither/index.ts`, register the id, and update the control |
+| A ramp preset | Add it to `src/core/ascii/index.ts`, ordered lightest to darkest |
+| A text font | Add the asset under `public/` only when text rendering is wired, with its license documented |
+| An export format | Add a pure formatter under `src/core/`, then wire the action in `src/ui/ExportPanel.tsx` |
 | A dependency | Explain why in the pull request. Prefer small, maintained packages; check the license |
 
 ## Licensing of contributions

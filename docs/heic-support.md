@@ -17,6 +17,8 @@ How the app reads HEIC and HEIF images, the format iPhones use for photos.
 
 ## Summary
 
+**Current status:** HEIC handling is native-browser-only through `src/io/decode.ts`. The `loadHeicFile` helper is a placeholder that retries normal image loading and reports an unsupported-format error when that fails. The worker-based `libheif-js` fallback described below is planned, not present in this checkout.
+
 Safari and some system configurations can decode HEIC natively. Chrome and Firefox generally cannot. The app therefore:
 
 1. Detects HEIC/HEIF files.
@@ -188,6 +190,8 @@ A 12-megapixel image is about 48 MB as RGBA. Downscaling straight after decode a
 libheif and its HEVC decoder are LGPL-licensed, and HEVC-related patent licensing is a known consideration for HEIC decoders. Review the obligations with legal counsel before commercial distribution, and list libheif in `THIRD_PARTY_NOTICES.md`.
 
 ## Testing
+
+The scenarios below are acceptance criteria for the planned fallback implementation. There is no Vitest/Playwright harness in the current repository.
 
 | Test | Environment | Expectation |
 |---|---|---|

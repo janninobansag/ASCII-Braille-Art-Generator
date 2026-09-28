@@ -18,6 +18,8 @@ This guide explains what each feature does and when to use it. For how it works 
 
 ## Modes at a glance
 
+**Implementation note:** image conversion and its rendering controls are the active path today. Text processing and export actions are represented in the UI but are still being wired; treat their details below as the intended behavior.
+
 The app has two switches:
 
 | Switch | Options |

@@ -16,6 +16,8 @@ Layout, controls, states, and accessibility for the app. The structure follows t
 
 ## Layout
 
+This is the target UI specification. The current implementation follows the responsive shell and controls layout, while some text-mode, export, and error states remain planned.
+
 ```text
 ┌────────────────────────────────────────────────────────────────────┐
 │ Logo / name              About  Contact  Privacy  Terms   [theme]  │

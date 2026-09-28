@@ -7,7 +7,7 @@ How to build and host the app on Vercel.
 - [Overview](#overview)
 - [First deployment](#first-deployment)
 - [Project settings](#project-settings)
-- [vercel.json](#verceljson)
+- [Suggested Vercel configuration](#suggested-vercel-configuration)
 - [Security headers](#security-headers)
 - [Caching](#caching)
 - [CI](#ci)
@@ -59,7 +59,9 @@ vercel --prod   # deploy to production
 | Environment variables | None |
 | Domain | Add a custom domain under **Settings → Domains**. HTTPS certificates are issued automatically |
 
-## vercel.json
+## Suggested Vercel configuration
+
+The repository does not currently include a `vercel.json`. If you add one, use a configuration like this:
 
 ```json
 {
@@ -108,7 +110,7 @@ The rewrite sends unknown paths to `index.html` for client-side routing. Files t
 
 Notes on the policy:
 
-- `'wasm-unsafe-eval'` is required for the libheif WebAssembly module to start. Test it on a preview deployment in every browser.
+- `'wasm-unsafe-eval'` is only required if the planned libheif WebAssembly fallback is added. Test it on a preview deployment before enabling it.
 - `'unsafe-inline'` in `style-src` covers inline `style` attributes. Remove it later by moving dynamic styling to CSS variables and classes.
 - Cross-origin isolation headers (COOP/COEP) are **not** needed because the app does not use `SharedArrayBuffer`.
 - If URL loading through `fetch` is enabled, widen `connect-src` and `img-src` deliberately and only as far as needed.
@@ -120,15 +122,15 @@ Notes on the policy:
 | `/assets/*` | 1 year, `immutable` | File names include a content hash |
 | `/fonts/*` | 7 days, stale-while-revalidate | Names are not hashed. Use versioned paths such as `/fonts/v1/` if you want longer caching |
 | `/index.html` | Vercel default | Must revalidate so new deployments are picked up |
+| Vite dev/preview responses | `no-store` | Prevents stale local UI; configured in `vite.config.ts` |
 
 Vercel serves Brotli or gzip automatically.
 
-**Bundle splitting.** Keep these as separate chunks so the first page load stays small:
+**Bundle splitting.** Keep future HEIC, text, and export dependencies lazy so the first page load stays small:
 
 - Main app
-- HEIC worker (contains the WebAssembly decoder)
-- FIGlet loader
-- Export helpers
+- Future HEIC decoder
+- Future text/export helpers
 
 ## CI
 
@@ -154,11 +156,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
       - run: npm run build
 ```
 
-For browser tests against the preview URL, add a second job that waits for the Vercel deployment and runs `npm run test:e2e` with `BASE_URL` set to that URL. Configure Playwright's `baseURL` from the environment variable.
+The repository does not currently include `.github/workflows/ci.yml` or automated test scripts. Add those before enabling this example workflow. For browser tests against a preview URL, configure Playwright's `baseURL` from `BASE_URL`.
 
 ## Releases and rollback
 
@@ -189,11 +190,11 @@ Then update `connect-src` in the CSP and add tests for every blocked address ran
 ## Deployment checklist
 
 - [ ] Vite preset detected; build passes on Vercel
-- [ ] `vercel.json` committed
+- [ ] Optional `vercel.json` committed and reviewed
 - [ ] Preview deployment tested in Chrome, Firefox, and Safari
-- [ ] HEIC fallback works on the preview (Chromium and Firefox) under the CSP
+- [ ] Native HEIC behavior is checked on the preview; add the fallback check when the decoder is implemented
 - [ ] No console CSP violations
 - [ ] Custom domain added; HTTPS works
-- [ ] `THIRD_PARTY_NOTICES.md` and `LICENSE` present
+- [ ] Third-party notices and `LICENSE` added before public distribution
 - [ ] Privacy notice published
 - [ ] Open Graph image, `robots.txt`, and `sitemap.xml` in place

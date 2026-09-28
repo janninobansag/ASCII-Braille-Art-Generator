@@ -18,6 +18,8 @@ How an image becomes ASCII or Braille output. Everything here lives in `src/core
 
 ## Pipeline
 
+The current worker implements the image path: decode on the main thread, send `ImageData` plus settings to `src/workers/pipeline.worker.ts`, then render ASCII or Braille output. Text rasterization, color export, and transfer-once worker caching described in later sections are extension points rather than shipped behavior.
+
 ```mermaid
 flowchart LR
   A["RGBA raster"] --> B["Composite alpha over background"]
