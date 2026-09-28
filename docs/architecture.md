@@ -25,6 +25,8 @@ System design for the ASCII & Braille Art Generator: how the pieces fit, how wor
 
 ## System context
 
+The diagram below shows the target flow for the planned HEIC fallback and transfer-once optimization; the current implementation uses the simpler `ImageData → process` path described above.
+
 ```mermaid
 flowchart LR
   U["User"] -->|"Uses"| B["Browser: single-page app"]
@@ -82,19 +84,23 @@ Dependencies point downward only. `core` never imports from `ui`, `state`, `io`,
 
 ## Technology stack
 
+This document describes the current scaffold and planned extension points. Rows marked “planned” are not installed or wired in the repository yet.
+
 | Concern | Choice | Why |
 |---|---|---|
 | Language | TypeScript, strict mode | Typed pixel buffers and settings |
 | Build | Vite | Fast dev loop, built-in worker and WASM support, Vercel preset |
 | UI | React | Many interdependent controls |
 | Styling | CSS Modules | Scoped, no runtime cost |
-| HEIC | `libheif-js` in a worker | Raw RGBA output, no JPEG round-trip |
-| FIGlet | `figlet`, fonts fetched on demand | Large font catalog without bloating the bundle |
-| Unit tests | Vitest | Fast, TypeScript-native |
-| E2E tests | Playwright | Chromium, Firefox, and WebKit |
-| Hosting and CI | Vercel, GitHub Actions | Preview deployments per pull request |
+| HEIC | Native browser decoding | Fallback `libheif-js` worker is planned |
+| FIGlet | UI placeholder | Text rendering integration is planned |
+| Unit tests | Planned Vitest harness | No test dependency is installed yet |
+| E2E tests | Planned Playwright harness | No browser test script is installed yet |
+| Hosting and CI | Vercel-ready, CI planned | No `vercel.json` or workflow is committed |
 
 ## Repository layout
+
+The tree below is a target layout for planned text, HEIC, tests, and export modules. For the actual checkout, see the repository tree in `README.md`; absent paths should not be created unless the related feature is being implemented.
 
 ```text
 .
@@ -130,11 +136,11 @@ Dependencies point downward only. `core` never imports from `ui`, `state`, `io`,
 
 | Thread | Work |
 |---|---|
-| **Main** | UI, state, file and clipboard access, canvas work that needs loaded fonts (text rasterization, ramp calibration, PNG export) |
-| **Pipeline worker** | Holds the source image; resamples, applies tone, dithers, and renders text output |
-| **HEIC worker** | Created only when native decoding fails for a HEIC/HEIF file; terminated after decoding |
+| **Main** | UI, state, file/URL image loading, and worker lifecycle |
+| **Pipeline worker** | Receives pixel data and settings, resamples, applies tone, dithers, and renders ASCII/Braille output |
+| **Future workers** | HEIC fallback and text/export work may move off-thread when those features are implemented |
 
-**Transfer once, then send settings.** The main thread transfers the source pixel buffer to the pipeline worker a single time (`load`). Later `render` messages carry only settings, so slider changes do not re-send megabytes of pixels. The worker caches the resampled luminance grid and reuses it when only tone or dithering settings change.
+**Current message flow.** The main thread decodes an image to `ImageData` and sends the pixel buffer plus current settings to the pipeline worker for each processing request. The worker returns rendered art, dimensions, and status. Transfer-once caching is a planned optimization, not the current contract.
 
 **Latest-wins scheduling.** Setting changes are debounced (about 60–100 ms) and tagged with an increasing request ID. The UI applies a result only if its ID is the newest. During a slider drag, a smaller preview may render first, followed by a full-quality render when the drag ends.
 
@@ -163,6 +169,8 @@ sequenceDiagram
 ```
 
 ## Data model
+
+The interfaces below describe the intended normalized model. The current state types live in `src/state/types.ts`, and the worker currently accepts a `ProcessPayload` defined in `src/workers/pipeline.worker.ts`.
 
 ```ts
 export interface RasterImage {
@@ -227,17 +235,17 @@ Decoding and conversion errors are mapped to a small set of typed errors so the 
 | `cors-blocked` | URL host disallows cross-origin reads | "That site doesn't allow loading its images here." |
 | `clipboard-denied` | Clipboard API blocked | "Couldn't copy. Use Download instead." |
 
-Worker crashes are caught by the main thread; the worker is recreated and the last request is retried once.
+Worker errors are reported to the console and clear the processing state. Typed error mapping and retry behavior are planned.
 
 ## Extending the app
 
-**Add a dither kernel.** Add an entry to `core/dither/kernels.ts` (see the `Kernel` shape in [processing.md](processing.md#dithering)), register its id, and add it to the Dithering select. Add a golden test.
+**Add a dither kernel.** Add an entry to `src/core/dither/index.ts` (see the `Kernel` shape in [processing.md](processing.md#dithering)), register its id, and add it to the Dithering control. Add a golden test when the test harness exists.
 
-**Add a ramp preset.** Add the string to `core/ascii/ramp.ts`. Presets must be ordered lightest to darkest.
+**Add a ramp preset.** Add the string to `src/core/ascii/index.ts`. Presets must be ordered lightest to darkest.
 
-**Add a FIGlet font.** Copy the `.flf` file to `public/fonts/figlet/`, add a record to `figlet-fonts.json`, and add its license to `THIRD_PARTY_NOTICES.md`.
+**Add text rendering.** Add the rendering implementation and licensed assets under `src/` and `public/` only when text processing is wired. Document asset licensing before distribution.
 
-**Add an export format.** Add a pure formatter in `core/export/` that takes a `RenderResult` and returns a string or blob, then add a button in `ExportPanel`.
+**Add an export format.** Add a pure formatter under `src/core/`, then wire the action in `src/ui/ExportPanel.tsx`.
 
 ## Decision log
 

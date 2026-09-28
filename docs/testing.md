@@ -1,6 +1,6 @@
 # Testing
 
-How the project is tested and what "done" means for a change..
+How the project is tested and what “done” means for a change.
 
 ## Contents
 
@@ -22,7 +22,7 @@ How the project is tested and what "done" means for a change..
 | Accessibility | axe via Playwright, plus manual review | Labels, focus, contrast, announcements |
 | Performance | Scripted benchmarks and bundle-size checks | Latency and payload budgets |
 
-Because `src/core/` is pure and deterministic, most logic can be tested with small in-memory pixel buffers and exact expected strings.
+Because `src/core/` is pure and deterministic, most logic can be tested with small in-memory pixel buffers and exact expected strings. The repository does not yet include a test runner or `tests/` directory, so the tables below define the target coverage for the planned harness.
 
 ## Unit tests
 
@@ -89,7 +89,7 @@ Run the suite against a Vercel preview deployment as well as locally, since the 
 
 ## Fixtures
 
-Store fixtures in `tests/fixtures/`.
+When the test harness is added, store fixtures in `tests/fixtures/`.
 
 | Fixture | Purpose |
 |---|---|
@@ -133,13 +133,17 @@ CI fails if the main bundle grows past its budget.
 ## Running tests
 
 ```bash
+npm run typecheck     # available now
+npm run build         # available now
+npm run lint          # available when ESLint is configured
+# Planned after the test dependencies are added:
 npm test              # unit tests, once
 npm run test:watch    # unit tests, watch mode
 npm run test:e2e      # Playwright, all browsers
 npx playwright test --project=webkit   # one browser
 ```
 
-First-time Playwright setup: `npx playwright install --with-deps`.
+First-time Playwright setup, once configured: `npx playwright install --with-deps`.
 
 ## Definition of done
 
