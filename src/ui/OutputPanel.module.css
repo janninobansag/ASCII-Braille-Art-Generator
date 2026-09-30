@@ -59,12 +59,13 @@
 }
 
 .art {
-  margin: auto 0;
+  margin: 0;
   font-family: var(--font-mono);
   white-space: pre;
   line-height: 1;
   color: var(--text);
   user-select: text;
+  overflow-x: auto;
 }
 
 .empty {

@@ -50,7 +50,7 @@ export function OutputPanel({ hasContent, art, cols, rows, zoom, onZoomChange, o
         {hasContent ? (
           <pre
             className={styles.art}
-            style={{ fontSize: `${zoom / 100 * 12}px` }}
+            style={{ fontSize: `${zoom / 100 * 16}px` }}
             role="img"
             aria-label={`Character art, ${cols} by ${rows} characters`}
           >

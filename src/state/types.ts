@@ -88,7 +88,7 @@ export const DEFAULT_TEXT: TextSettings = {
   fontWeight: 700,
   lineHeight: 1.2,
   align: 'left',
-  wrapWidth: 80,
+  wrapWidth: 30,
   gradient: false,
   gradientFrom: '#ffffff',
   gradientTo: '#888888',
