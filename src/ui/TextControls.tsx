@@ -13,6 +13,7 @@ interface TextControlsProps {
 
 /** Braille output requires the raster engine (see docs/text-mode.md#overview);
  * the engine switch is disabled in that case rather than hidden, so it's clear why. */
+
 export function TextControls({ outputMode, text, setText }: TextControlsProps) {
   const engineLocked = outputMode === 'braille';
 
@@ -83,6 +84,7 @@ export function TextControls({ outputMode, text, setText }: TextControlsProps) {
             padding: 8,
             fontFamily: 'var(--font-sans)',
             fontSize: 13,
+            marginTop: 8,
           }}
         />
       </section>
