@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ControlsPanel } from '../ui/ControlsPanel';
 import { Header } from '../ui/Header';
 import { Footer } from '../ui/Footer';
@@ -10,9 +10,37 @@ import { useAppState } from '../state/useAppState';
 import { loadImageFile, loadImageUrl, getImageData } from '../io/decode';
 import { ASCII_RAMPS } from '../core/ascii';
 import { renderTextToBitmap } from '../core/text/textToBitmap';
+import { renderFiglet } from '../core/text/figlet';
 import { processBitmapToArt } from '../core/processBitmap';
+import { InputMode, TextSettings } from '../state/types';
 import styles from './App.module.css';
 import { scrollToSection } from './navigation';
+
+// Helper function to wrap text at word boundaries (same as in textToBitmap.ts)
+function wrapText(text: string, width: number): string {
+  if (width <= 0) return text;
+  const lines: string[] = [];
+  let currentLine = '';
+  for (const word of text.split(/\s+/)) {
+    // If adding this word would exceed the width, start a new line
+    if ((currentLine.length + (currentLine.length > 0 ? 1 : 0) + word.length) > width) {
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      currentLine = word;
+    } else {
+      if (currentLine) {
+        currentLine += ' ' + word;
+      } else {
+        currentLine = word;
+      }
+    }
+  }
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  return lines.join('\n');
+}
 
 interface CachedImage {
   data: Uint8ClampedArray;
@@ -24,6 +52,15 @@ export function App() {
   const state = useAppState();
   const workerRef = useRef<Worker | null>(null);
   const currentImageRef = useRef<CachedImage | null>(null);
+  const prevInputModeRef = useRef<InputMode>(state.inputMode);
+
+  // Preserved state for switching between input modes
+  const [preservedTextState, setPreservedTextState] = useState<TextSettings | null>(null);
+  const [preservedImageState, setPreservedImageState] = useState<{
+    currentImage: CachedImage | null;
+    hasImage: boolean;
+    imageName: string | null;
+  } | null>(null);
 
   // Reflect the theme on <html> so CSS custom properties in theme.css apply globally.
   useEffect(() => {
@@ -42,38 +79,44 @@ export function App() {
           : ASCII_RAMPS[state.ascii.ramp] || ASCII_RAMPS.classic;
 
       state.setIsProcessing(true);
-      worker.postMessage({
-        type: 'process',
-        payload: {
-          imageData: img.data,
-          width: img.width,
-          height: img.height,
-          outputWidth: state.common.columns,
-          outputMode: state.outputMode,
-          brightness: state.common.brightness / 100,
-          contrast: state.common.contrast,
-          gamma: state.common.gamma,
-          stretchX: state.common.stretchX,
-          stretchY: state.common.stretchY,
-          invert: state.common.invert,
-          characterRamp: ramp,
-          dithering: state.common.dithering.algorithm,
-          ditherStrength: state.common.dithering.strength,
-          serpentine: state.common.dithering.serpentine,
-          edgeDetect: state.ascii.edgeEnabled,
-          edgeThreshold: state.ascii.edgeThreshold,
-          fillBlankCells: state.braille.fillBlank,
-          thresholdAuto: state.braille.thresholdAuto,
-          threshold: state.braille.threshold,
-          backgroundColor:
-            state.theme === 'dark' ? { r: 14, g: 16, b: 21 } : { r: 255, g: 255, b: 255 },
+
+      // Create a copy of the buffer for transfer to avoid detaching our original data
+      // This allows us to keep the original image data in main thread for reprocessing
+      const imageDataCopy = img.data.slice(0);
+
+      worker.postMessage(
+        {
+          type: 'process',
+          payload: {
+            width: img.width,
+            height: img.height,
+            outputWidth: state.common.columns,
+            outputMode: state.outputMode,
+            brightness: state.common.brightness / 100,
+            contrast: state.common.contrast,
+            gamma: state.common.gamma,
+            stretchX: state.common.stretchX,
+            stretchY: state.common.stretchY,
+            invert: state.common.invert,
+            characterRamp: ramp,
+            dithering: state.common.dithering.algorithm,
+            ditherStrength: state.common.dithering.strength,
+            serpentine: state.common.dithering.serpentine,
+            edgeDetect: state.ascii.edgeEnabled,
+            edgeThreshold: state.ascii.edgeThreshold,
+            fillBlankCells: state.braille.fillBlank,
+            thresholdAuto: state.braille.thresholdAuto,
+            threshold: state.braille.threshold,
+            backgroundColor:
+              state.theme === 'dark' ? { r: 14, g: 16, b: 21 } : { r: 255, g: 255, b: 255 },
+          },
         },
-      });
+        [imageDataCopy.buffer] // Transfer the copy buffer efficiently
+      );
     },
     [state]
   );
 
-  
   // Initialize the pipeline worker
   useEffect(() => {
     try {
@@ -147,51 +190,81 @@ export function App() {
     state.setIsProcessing(true);
     state.setOutputArt(''); // Clear previous output
 
-    renderTextToBitmap({
-      text: state.text,
-      common: state.common,
-      ascii: state.ascii,
-      braille: state.braille,
-      outputMode: state.outputMode,
-    })
-      .then(bitmap => {
-        // Process the bitmap directly using the pure function (avoiding worker)
-        const ramp =
-          state.ascii.ramp === 'custom'
-            ? state.ascii.customRamp || ASCII_RAMPS.classic
-            : ASCII_RAMPS[state.ascii.ramp] || ASCII_RAMPS.classic;
+    // Handle FIGlet engine separately - bypass image processing pipeline
+    if (state.text.engine === 'figlet') {
+      // Apply wrap width to INPUT text before FIGlet processing
+      const wrappedInput = state.text.wrapWidth > 0 ? wrapText(state.text.text, state.text.wrapWidth) : state.text.text;
 
-        const result = processBitmapToArt(
-          bitmap.data,
-          bitmap.width,
-          bitmap.height,
-          state.common.columns, // outputWidth
-          state.outputMode,
-          state.common.brightness / 100, // brightness in [-1, 1]
-          state.common.contrast,
-          state.common.gamma,
-          state.common.invert,
-          ramp,
-          state.common.dithering.algorithm,
-          state.common.dithering.strength,
-          state.common.dithering.serpentine,
-          state.ascii.edgeEnabled,
-          state.ascii.edgeThreshold,
-          state.braille.fillBlank,
-          state.braille.thresholdAuto,
-          state.braille.threshold,
-          state.theme === 'dark' ? { r: 14, g: 16, b: 21 } : { r: 255, g: 255, b: 255 }
-        );
+      renderFiglet(wrappedInput, state.text.figletFont, state.text.figletLayout as any)
+        .then((figletText) => {
+          // Set output art directly (no further wrapping - preserve FIGlet formatting)
+          state.setOutputArt(figletText);
 
-        state.setOutputArt(result.art);
-        state.setOutputCols(result.cols);
-        state.setOutputRows(result.rows);
-        state.setIsProcessing(false);
+          // Calculate dimensions from FIGlet output
+          const lines = figletText.split('\n');
+          // Handle case where figletText might be empty or have trailing newlines
+          const filteredLines = lines.filter(line => line.length > 0);
+          const maxLineLength = Math.max(
+            ...filteredLines.map(line => line.length),
+            0
+          );
+          state.setOutputCols(maxLineLength);
+          state.setOutputRows(lines.length); // Include empty lines for accurate row count
+
+          state.setIsProcessing(false);
+        })
+        .catch(error => {
+          state.setIsProcessing(false);
+          console.error('Error rendering FIGlet text:', error);
+        });
+    } else {
+      // Handle raster engine and image input mode using existing pipeline
+      renderTextToBitmap({
+        text: state.text,
+        common: state.common,
+        ascii: state.ascii,
+        braille: state.braille,
+        outputMode: state.outputMode,
       })
-      .catch(error => {
-        state.setIsProcessing(false);
-        console.error('Error rendering text:', error);
-      });
+        .then(bitmap => {
+          // Process the bitmap directly using the pure function (avoiding worker)
+          const ramp =
+            state.ascii.ramp === 'custom'
+              ? state.ascii.customRamp || ASCII_RAMPS.classic
+              : ASCII_RAMPS[state.ascii.ramp] || ASCII_RAMPS.classic;
+
+          const result = processBitmapToArt(
+            bitmap.data,
+            bitmap.width,
+            bitmap.height,
+            state.common.columns, // outputWidth
+            state.outputMode,
+            state.common.brightness / 100, // brightness in [-1, 1]
+            state.common.contrast,
+            state.common.gamma,
+            state.common.invert,
+            ramp,
+            state.common.dithering.algorithm,
+            state.common.dithering.strength,
+            state.common.dithering.serpentine,
+            state.ascii.edgeEnabled,
+            state.ascii.edgeThreshold,
+            state.braille.fillBlank,
+            state.braille.thresholdAuto,
+            state.braille.threshold,
+            state.theme === 'dark' ? { r: 14, g: 16, b: 21 } : { r: 255, g: 255, b: 255 }
+          );
+
+          state.setOutputArt(result.art);
+          state.setOutputCols(result.cols);
+          state.setOutputRows(result.rows);
+          state.setIsProcessing(false);
+        })
+        .catch(error => {
+          state.setIsProcessing(false);
+          console.error('Error rendering text:', error);
+        });
+    }
   }, [
     state.text,
     state.common,
@@ -199,7 +272,43 @@ export function App() {
     state.braille,
     state.outputMode,
     state.inputMode,
+    state.theme,
   ]);
+
+  // Preserve and restore state when switching between input modes
+  useEffect(() => {
+    const prevMode = prevInputModeRef.current;
+    const currMode = state.inputMode;
+
+    // Save state when leaving a mode
+    if (prevMode === 'text' && currMode === 'image') {
+      // Leaving text mode: save current text state
+      setPreservedTextState(state.text);
+    } else if (prevMode === 'image' && currMode === 'text') {
+      // Leaving image mode: save current image state
+      setPreservedImageState({
+        currentImage: currentImageRef.current,
+        hasImage: state.hasImage,
+        imageName: state.imageName
+      });
+    }
+
+    // Restore state when entering a mode
+    if (currMode === 'text' && preservedTextState !== null) {
+      // Entering text mode: restore preserved text state
+      state.setText(preservedTextState);
+    } else if (currMode === 'image' && preservedImageState !== null) {
+      // Entering image mode: restore preserved image state
+      if (preservedImageState.currentImage !== null) {
+        currentImageRef.current = preservedImageState.currentImage;
+      }
+      state.setHasImage(preservedImageState.hasImage);
+      state.setImageName(preservedImageState.imageName);
+    }
+
+    // Update the previous mode for next comparison
+    prevInputModeRef.current = currMode;
+  }, [state.inputMode]);
 
   async function handleFileSelected(file: File) {
     state.setIsProcessing(true);
