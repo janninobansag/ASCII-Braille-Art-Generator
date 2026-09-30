@@ -205,17 +205,6 @@ export function TextControls({ outputMode, text, setText }: TextControlsProps) {
       )}
 
       <section className={styles.section}>
-        <h3 className={styles.sectionLabel}>Layout</h3>
-        <Segmented
-          ariaLabel="Text alignment"
-          value={text.align}
-          options={[
-            { value: 'left', label: 'Left' },
-            { value: 'center', label: 'Center' },
-            { value: 'right', label: 'Right' },
-          ]}
-          onChange={v => setText({ align: v })}
-        />
         <SliderField
           label="Wrap width"
           value={text.wrapWidth}

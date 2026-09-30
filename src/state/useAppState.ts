@@ -63,7 +63,7 @@ export function useAppState(): AppState {
   const [text, setTextState] = useState<TextSettings>(DEFAULT_TEXT);
   const [hasImage, setHasImage] = useState(false);
   const [imageName, setImageName] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(50);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [outputArt, setOutputArt] = useState('');
